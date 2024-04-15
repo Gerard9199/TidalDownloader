@@ -28,36 +28,65 @@ def get_fixed_song_name(path):
                 except:
                     os.remove(full_path)
 
-def convert_flac_to_alac(path):
-    # Crear la carpeta ALAC si no existe
-    alac_directory = os.path.join(path, "ALAC")
-    if not os.path.exists(alac_directory):
-        os.makedirs(alac_directory)
+def convert_flac(path, output_format='ALAC'):
+    # Diccionario de configuración para diferentes formatos de salida
+    formats = {
+        'ALAC': {
+            'ext': '.m4a', 
+            'codec': 'alac', 
+            'extra_params': ['-ar', '44100', '-ac', '2', '-sample_fmt', 's16p','-f', 'ipod']
+        },
+        'WAV': {
+            'ext': '.wav', 
+            'codec': 'pcm_s16le', 
+            'extra_params': []
+        },
+        'AIFF': {
+            'ext': '.aiff', 
+            'codec': 'pcm_s16be', 
+            'extra_params': []
+        },
+        'AAC': {
+            'ext': '.m4a', 
+            'codec': 'aac', 
+            'extra_params': ['-ar', '44100', '-ac', '2', '-ab', '320k']
+        },
+        'MP3': {
+            'ext': '.mp3', 
+            'codec': 'libmp3lame', 
+            'extra_params': ['-ar', '44100', '-ac', '2', '-q:a', '0']
+        }
+    }
+    
+    # Crear la carpeta para el formato si no existe
+    output_directory = os.path.join(path, output_format)
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
 
-    # Ruta al ejecutable ffmpeg
-    ffmpeg_executable = r'C:\ffmpeg\bin\ffmpeg.exe' # Suponiendo que tu ffmpeg esta en disco C
+    # Ruta al ejecutable ffmpeg (ajustar según la ubicación real de ffmpeg)
+    ffmpeg_executable = r'C:\ffmpeg\bin\ffmpeg.exe'
 
     # Mapear todos los archivos dentro del path proporcionado
     for filename in os.listdir(path):
-        # Comprobar si el archivo actual es un archivo FLAC
         if filename.endswith('.flac'):
-            # Construir el path completo del archivo FLAC
             full_path = os.path.join(path, filename)
-            # Construir el nuevo path dentro de la carpeta ALAC, con la extensión .m4a
-            new_path = os.path.join(alac_directory, os.path.splitext(filename)[0] + '.m4a')
+            new_filename = os.path.splitext(filename)[0] + formats[output_format]['ext']
+            new_path = os.path.join(output_directory, new_filename)
 
-            # Ejecutar el comando ffmpeg para convertir de FLAC a ALAC sin procesar video
+            codec = formats[output_format]['codec']
+            extra_params = formats[output_format]['extra_params']
+            
+            command = [ffmpeg_executable, '-i', full_path, '-vn', '-acodec', codec] + extra_params + [new_path]
+            
             process = subprocess.run(
-                [ffmpeg_executable, '-i', full_path, '-vn', '-acodec', 'alac', new_path],
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                text=True
+                command, stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, text=True
             )
             
             # Imprimir la salida estándar y errores de ffmpeg
             print(process.stdout)
             print(process.stderr)
-
+            
             # Verificar si el proceso no se ejecutó correctamente
             if process.returncode != 0:
                 print(f'Error al convertir el archivo {filename}')
