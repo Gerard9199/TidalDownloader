@@ -10,7 +10,7 @@ username = ""
 password = ""
 
 
- #--- Chrome WebDriver Options
+#--- Chrome WebDriver Options
 options = Options()
 options.add_argument("--disable-infobars")
 options.add_argument("--disable-notifications")
@@ -71,10 +71,11 @@ text = element.text
 
 # Procesa el texto para obtener el número antes del "/".
 playlist_lenght = int(text.split('/')[0].strip())
-
 # Obtener el tiempo de espera esperado
 time_threshold = playlist_lenght * 0.053 
 
+time.sleep(20)
 driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[5]/main/div/main/div[4]/div/div/div[3]/div/button').click()
-driver.implicitly_wait(time_threshold)
+time.sleep(20)
+time.sleep(time_threshold)
 driver.close()
